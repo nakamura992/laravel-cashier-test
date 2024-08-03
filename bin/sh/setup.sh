@@ -1,68 +1,79 @@
-# コンテナを起動
-docker-compose up -d --build
-# 成功後コンテナに入る
-docker-compose exec app bash
+#!/bin/bash
+set -e
 
-# 一時ディレクトリを作成
-mkdir ../temp
+# コンテナをビルドして起動
+docker-compose -f docker-compose.init.yml up -d --build
 
-# Makefileなど、保持したいファイルを一階層上の一時ディレクトリに移動
-mv * ../temp/ 2>/dev/null
-mv .* ../temp/ 2>/dev/null
+# コンテナ内での作業
+echo "exec command: mkdir ../temp"
+docker-compose exec -T app bash -c "mkdir ../temp"
 
-# Laravelをインストール
-composer create-project laravel/laravel .
+echo "exec command: mv * ../temp/ 2>/dev/null || true"
+docker-compose exec -T app bash -c "mv * ../temp/ 2>/dev/null || true"
 
-# 一階層上に移動
-cd ..
+echo "exec command: mv .* ../temp/ 2>/dev/null || true"
+docker-compose exec -T app bash -c "mv .* ../temp/ 2>/dev/null || true"
 
-# 一時的に移動したファイルを元のディレクトリに戻す
-mv temp/* html/ 2>/dev/null
-mv temp/.* html/ 2>/dev/null
+echo "exec command: composer create-project laravel/laravel ."
+docker-compose exec -T app bash -c "composer create-project laravel/laravel ."
 
-# 一時ディレクトリを削除
-rmdir temp
+echo "exec command: cd .. && mv temp/* html/ 2>/dev/null && mv temp/.* html/ 2>/dev/null && rmdir temp && cd html"
+docker-compose exec -T app bash -c "cd .. && mv temp/* html/ 2>/dev/null && mv temp/.* html/ 2>/dev/null && rmdir temp && cd html"
 
-# プロジェクトディレクトリに戻る
-cd html
+echo "exec command: composer install"
+docker-compose exec -T app bash -c "composer install"
 
-# パッケージなどをインストール
-composer install
-npm install
+echo "exec command: npm install"
+docker-compose exec -T app bash -c "npm install"
 
-# keyを生成する
-php artisan key:generate
-
-# 抜ける
-exit
+# .env.exampleから.envを複製
+cp src/.env.example src/.env
 
 # ルートディレクトリの.envを一時ファイルにコピー
-cat .env > src/.env.tmp
+cp .env src/.env.tmp
+
 # Laravelの.envを一時ファイルの末尾に追加
-cat ./src/.env >> src/.env.tmp
+cat src/.env >> src/.env.tmp
+
 # 一時ファイルをLaravelの.envにコピー
-copy src/.env.tmp src/.env
-# 一時ファイルを削除
-rm src/.env.tmp
+mv src/.env.tmp src/.env
 
-# 再度コンテナにはいる
-docker-compose exec app bash
+# 再度コンテナ内での作業
 
-#マイグレーションを実行
-php artisan migrate
+# アプリケーションキーを生成
+echo "exec command: php artisan key:generate"
+docker-compose exec -T app bash -c "php artisan key:generate"
 
-#以下権限設定
-#ubuntu debianOSの場合
-chown -R www-data:www-data /var/www/html
-# ディレクトリを755に設定
-find . -type d -exec chmod 755 {} \;
+# データベースマイグレーションを実行
+echo "exec command: php artisan migrate"
+docker-compose exec -T app bash -c "php artisan migrate"
 
-# ファイルを644に設定
-find . -type f -exec chmod 644 {} \;
+# アプリケーションディレクトリの所有者をwww-dataに変更
+echo "exec command: chown -R www-data:www-data /var/www/html"
+docker-compose exec -T app bash -c "chown -R www-data:www-data /var/www/html"
 
-# storage と bootstrap/cache を書き込み可能に設定
-chmod -R 775 ./storage
-chmod -R 775 ./bootstrap/cache
+# すべてのディレクトリの権限を755に設定
+echo "exec command: find . -type d -exec chmod 755 {} \;"
+docker-compose exec -T app bash -c "find . -type d -exec chmod 755 {} \;"
 
-#artisanに実行権限
-chmod 755 artisan
+# すべてのファイルの権限を644に設定
+echo "exec command: find . -type f -exec chmod 644 {} \;"
+docker-compose exec -T app bash -c "find . -type f -exec chmod 644 {} \;"
+
+# storageディレクトリの権限を775に設定（書き込み権限を付与）
+echo "exec command: chmod -R 775 ./storage"
+docker-compose exec -T app bash -c "chmod -R 775 ./storage"
+
+# bootstrap/cacheディレクトリの権限を775に設定（書き込み権限を付与）
+echo "exec command: chmod -R 775 ./bootstrap/cache"
+docker-compose exec -T app bash -c "chmod -R 775 ./bootstrap/cache"
+
+# artisanファイルの実行権限を設定
+echo "exec command: chmod 755 artisan"
+docker-compose exec -T app bash -c "chmod 755 artisan"
+
+# publicディレクトリにstorageのシンボリックリンクを作成
+echo "exec command: php artisan storage:link"
+docker-compose exec -T app bash -c "php artisan storage:link"
+
+echo "Setup completed."

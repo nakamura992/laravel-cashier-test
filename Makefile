@@ -12,7 +12,12 @@ command-list:
 	@echo " make init-build-up     - docker-compose -f docker-compose.init.yml up -d --build"
 	@echo " make init-nbuild       - docker-compose -f docker-compose.init.yml build --no-cache"
 	@echo " make init-up           - docker-compose -f docker-compose.init.yml up -d"
-	@echo " make down -v           - docker-compose down -v"
+	@echo " make vdown             - docker-compose down -v"
+	@echo " make setup_for_mac     - Laravel setup for Mac/Linux"
+	@echo " make setup_for_windows - Laravel setup for Windows"
+	@echo " make init-build-up     - docker-compose -f docker-compose.init.yml up -d --build"
+	@echo " make init-nbuild       - docker-compose -f docker-compose.init.yml build --no-cache"
+	@echo " make init-up           - docker-compose -f docker-compose.init.yml up -d"
 
 
 # Docker commands
@@ -37,7 +42,7 @@ app:
 app-www-data:
 	docker-compose exec --user=www-data app bash
 
-down-v:
+vdown:
 	docker-compose down -v
 
 # Laravel setup for Mac/Linux

@@ -64,4 +64,4 @@ m-rule:
 
 m-ctrl:
 	@read -p " Enter controller name: " name; \
-	php artisan make:controller $$name
+	php artisan make:controller $${name}Controller
