@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     nano \
     vim \
     sudo \
+    curl \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd mysqli
 
 #Composer インストール
@@ -47,6 +48,11 @@ RUN composer global require "laravel/installer"
 
 # 作業ディレクトリを設定
 WORKDIR /var/www/html/
+
+# Stripe CLIのインストール
+RUN curl -s https://packages.stripe.dev/api/security/keypair/stripe-cli-gpg/public | gpg --dearmor | sudo tee /usr/share/keyrings/stripe.gpg
+RUN echo "deb [signed-by=/usr/share/keyrings/stripe.gpg] https://packages.stripe.dev/stripe-cli-debian-local stable main" | sudo tee -a /etc/apt/sources.list.d/stripe.list
+RUN apt-get update && apt install stripe
 
 # laravelインストール後にコメントアウト
 # RUN npm install
