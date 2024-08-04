@@ -28,3 +28,7 @@ docker-compose cp ./src/node_modules app:/var/www/html
 # ホストのstorageディレクトリをコンテナのappにコピー
 echo "exec command: docker-compose cp .src/storage app:/var/www/html"
 docker-compose cp ./src/storage app:/var/www/html
+
+# コピー後にユーザー権限をwww-dataに変更
+echo "exec command: chown -R www-data:www-data /var/www/html"
+docker-compose exec -T app bash -c "chown -R www-data:www-data /var/www/html"

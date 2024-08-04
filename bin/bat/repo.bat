@@ -33,4 +33,8 @@ REM ホストのstorageディレクトリをコンテナのappにコピー
 echo Copying storage directory to container...
 docker-compose cp ./src/storage app:/var/www/html
 
+REM コピー後にユーザー権限をwww-dataに変更
+echo Changing ownership of storage directory to www-data...
+docker-compose exec -T app bash -c "chown -R www-data:www-data /var/www/html"
+
 echo Setup completed.
