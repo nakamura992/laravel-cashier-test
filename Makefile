@@ -15,6 +15,8 @@ command-list:
 	@echo " make vdown             - docker-compose down -v"
 	@echo " make setup_for_mac     - Laravel setup for Mac/Linux"
 	@echo " make setup_for_windows - Laravel setup for Windows"
+	@echo " make setup_repo_for_windows - Laravel setup for Windows"
+	@echo " make setup_repo_for_mac - Laravel setup for Mac/Linux"
 	@echo " make init-build-up     - docker-compose -f docker-compose.init.yml up -d --build"
 	@echo " make init-nbuild       - docker-compose -f docker-compose.init.yml build --no-cache"
 	@echo " make init-up           - docker-compose -f docker-compose.init.yml up -d"
@@ -45,8 +47,17 @@ app-www-data:
 vdown:
 	docker-compose down -v
 
+# 環境変数のチェック
+include .env
+export
+check_env_vars:
+	@if [ -z "$(ROOT_APP_NAME)" ] || [ -z "$(ROOT_MYSQL_PASSWORD)" ]; then \
+		echo ".env is not set."; \
+		exit 1; \
+	fi
+
 # Laravel setup for Mac/Linux
-setup_for_mac:
+setup_for_mac: check_env_vars
 	@read -p "Are you sure you want to continue? (yes/no) " choice; \
 	if [ "$$choice" = "yes" ]; then \
 		sh bin/sh/setup.sh; \
@@ -55,7 +66,7 @@ setup_for_mac:
 	fi
 
 # Laravel setup for Windows
-setup_for_windows:
+setup_for_windows: check_env_vars
 	@powershell -Command " \
 		$$choice = Read-Host 'Are you sure you want to continue? (yes/no)'; \
 		if ($$choice -eq 'yes') { \
@@ -63,6 +74,12 @@ setup_for_windows:
 		} else { \
 			Write-Host 'Setup cancelled.' \
 		}"
+
+setup_repo_for_windows:
+	.\bin\bat\repo.bat
+
+setup_repo_for_mac:
+	sh bin/sh/repo.sh
 
 init-build-up:
 	docker-compose -f docker-compose.init.yml up -d --build

@@ -6,12 +6,12 @@ services:
       dockerfile: ./docker/php/Dockerfile
     volumes:
       - ./src/:/var/www/html
-    command: >
-      sh -c "
-        if [ -f composer.json ]; then composer install; fi &&
-        if [ -f package.json ]; then npm install; fi &&
-        php-fpm
-      "
+    # command: >
+    #   sh -c "
+    #     if [ -f composer.json ]; then composer install; fi &&
+    #     if [ -f package.json ]; then npm install; fi &&
+    #     php-fpm
+    #   "
 
   nginx:
     image: nginx
@@ -57,5 +57,3 @@ services:
 # 上書き
 volumes:
   mysql-volume:
-  vendor-volumes:
-  node_modules:
